@@ -110,3 +110,12 @@ void freeDataset(Dataset *dataset)
     free(dataset->labels);
     free(dataset);
 }
+
+Dataset *createDataset(const int count)
+{
+    Dataset *dataset = malloc(sizeof(Dataset));
+    dataset->count = count;
+    dataset->pixels = malloc(sizeof(double) * 784 * count);
+    dataset->labels = malloc(sizeof(double) * count);
+    return dataset;
+}
