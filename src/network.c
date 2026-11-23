@@ -1,6 +1,7 @@
 #include "../include/network.h"
 #include <assert.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 void freeForwardCache(ForwardCache *cache) {
@@ -91,4 +92,121 @@ double *forwardPass(Network *net, double *vector, ForwardCache *cache) {
   softMax(predictions);
   cache->predictions = predictions;
   return predictions;
+}
+double calculateCrossEntropyLoss(double *predictions, int label) {
+  return -log(predictions[label]);
+}
+
+Gradients createGradients(const Network *network) {
+  Gradients grad = {0};
+  for (int i = 0; i < 3; i++) {
+    grad.biases_gradients[i] =
+        malloc(sizeof(double) * network->weights[i].rows);
+    if (grad.biases_gradients[i] == NULL) {
+      freeGradients(&grad);
+      return grad;
+    }
+    grad.weights_gradients[i] =
+        createMatrix(network->weights[i].rows, network->weights[i].cols);
+    if (grad.weights_gradients[i].data == NULL) {
+      freeGradients(&grad);
+      return grad;
+    }
+    grad.deltas[i] = malloc(sizeof(double) * network->weights[i].rows);
+    if (grad.deltas[i] == NULL) {
+      freeGradients(&grad);
+      return grad;
+    }
+  }
+  return grad;
+}
+void freeGradients(Gradients *grad) {
+  for (int i = 0; i < 3; i++) {
+    free(grad->biases_gradients[i]);
+    grad->biases_gradients[i] = NULL;
+    freeMatrix(&grad->weights_gradients[i]);
+    free(grad->deltas[i]);
+    grad->deltas[i] = NULL;
+  }
+}
+
+void zeroGradients(Gradients *gradients) {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < gradients->weights_gradients[i].cols *
+                            gradients->weights_gradients[i].rows;
+         j++) {
+      gradients->weights_gradients[i].data[j] = 0;
+    }
+  }
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < gradients->weights_gradients[i].rows; j++) {
+      gradients->biases_gradients[i][j] = 0;
+    }
+  }
+}
+static void calculateOutputDelta(Gradients *grad, const ForwardCache *cache,
+                                 int label) {
+  for (int i = 0; i < grad->weights_gradients[2].rows; i++) {
+    if (i == label) {
+      grad->deltas[2][i] = cache->predictions[i] - 1;
+    } else {
+      grad->deltas[2][i] = cache->predictions[i];
+    }
+  }
+}
+void calculatePrevDelta(Gradients *grad, const ForwardCache *cache,
+                        const Network *net, int layer) {
+  if (layer < 0) {
+    return;
+  }
+  for (int i = 0; i < net->weights[layer].rows; i++) {
+    if (cache->a[layer][i] == 0) {
+      grad->deltas[layer][i] = 0;
+    } else {
+      double sm = 0;
+      for (int j = 0; j < net->weights[layer + 1].rows; j++) {
+        sm += grad->deltas[layer + 1][j] *
+              matrix_get(&net->weights[layer + 1], j, i);
+      }
+      grad->deltas[layer][i] = sm;
+    }
+  }
+}
+static void accumulateLayerGradients(Gradients *grad, const ForwardCache *cache,
+                                     int layer) {
+  for (int i = 0; i < grad->weights_gradients[layer].rows; i++) {
+    for (int j = 0; j < grad->weights_gradients[layer].cols; j++) {
+      if (layer == 0) {
+        grad->weights_gradients->data[i * grad->weights_gradients->cols + j] +=
+            grad->deltas[layer][i] * cache->input[j];
+        continue;
+      }
+      grad->weights_gradients[layer]
+          .data[i * grad->weights_gradients[layer].cols + j] +=
+          grad->deltas[layer][i] * cache->a[layer - 1][j];
+    }
+    grad->biases_gradients[layer][i] += grad->deltas[layer][i];
+  }
+}
+void backwardPass(Gradients *grad, const ForwardCache *cache,
+                  const Network *net, int label) {
+  calculateOutputDelta(grad, cache, label);
+  for (int i = 2; i >= 0; i--) {
+    accumulateLayerGradients(grad, cache, i);
+    calculatePrevDelta(grad, cache, net, i - 1);
+  }
+}
+void updateNetwork(Network *net, const Gradients *grad, double learningRate,
+                   int batchSize) {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < net->weights[i].cols * net->weights[i].rows; j++) {
+      net->weights[i].data[j] =
+          net->weights[i].data[j] -
+          grad->weights_gradients[i].data[j] * learningRate / batchSize;
+    }
+    for (int j = 0; j < net->weights[i].rows; j++) {
+      net->biases[i][j] = net->biases[i][j] - grad->biases_gradients[i][j] *
+                                                  learningRate / batchSize;
+    }
+  }
 }
