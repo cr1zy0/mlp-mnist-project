@@ -13,7 +13,9 @@ int main() {
   trainValidationSplit(ds, train, test);
   freeDataset(ds);
   Network net = createNetwork(128, 64);
-  networkFit(&net, train, test, 0.01, 10, 16);
+  if (!loadWeights(&net, "weights.csv")) {
+    networkFit(&net, train, test, 0.01, 10, 16);
+  }
   double evalLoss = 0;
   double evalAcc = 0;
   networkEvaluate(&net, eval, &evalAcc, &evalLoss);
@@ -23,4 +25,5 @@ int main() {
   freeDataset(test);
   freeDataset(train);
   freeDataset(eval);
+  saveWeights(&net, "weights.csv");
 }

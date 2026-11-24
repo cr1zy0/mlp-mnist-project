@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360" role="img" aria-label="Accuracy (%) across 10 epochs">
+  <title>Accuracy (%) across 10 epochs</title>
+  <rect width="760" height="360" rx="20" fill="#f8fafc"/>
+  <text x="76" y="32" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Model accuracy</text>
+  <text x="76" y="53" font-family="Arial,sans-serif" font-size="13" fill="#475569">MNIST • 784 → 128 → 64 → 10 • 10 epochs</text>
+  <g font-family="Arial,sans-serif" font-size="12" fill="#475569">
+    <line x1="76" y1="284.25" x2="722" y2="284.25" stroke="#dbe4ef" stroke-width="1"/><text x="64" y="288.25" text-anchor="end">85%</text>
+    <line x1="76" y1="215.5" x2="722" y2="215.5" stroke="#dbe4ef" stroke-width="1"/><text x="64" y="219.5" text-anchor="end">90%</text>
+    <line x1="76" y1="146.75" x2="722" y2="146.75" stroke="#dbe4ef" stroke-width="1"/><text x="64" y="150.75" text-anchor="end">95%</text>
+    <line x1="76" y1="78" x2="722" y2="78" stroke="#dbe4ef" stroke-width="1"/><text x="64" y="82" text-anchor="end">100%</text>
+    <text x="76" y="320" text-anchor="middle">1</text>
+    <text x="147.77777777777777" y="320" text-anchor="middle">2</text>
+    <text x="219.55555555555554" y="320" text-anchor="middle">3</text>
+    <text x="291.33333333333337" y="320" text-anchor="middle">4</text>
+    <text x="363.1111111111111" y="320" text-anchor="middle">5</text>
+    <text x="434.8888888888889" y="320" text-anchor="middle">6</text>
+    <text x="506.6666666666667" y="320" text-anchor="middle">7</text>
+    <text x="578.4444444444445" y="320" text-anchor="middle">8</text>
+    <text x="650.2222222222222" y="320" text-anchor="middle">9</text>
+    <text x="722" y="320" text-anchor="middle">10</text>
+    <text x="399" y="348" text-anchor="middle">Epoch</text></g>
+  <path d="M 76 78 V 298 H 722" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+  <polyline points="76.00,265.41 147.78,174.80 219.56,153.49 291.33,139.74 363.11,129.42 434.89,122.96 506.67,116.50 578.44,111.96 650.22,108.11 722.00,104.54" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="76.00" cy="265.41" r="4" fill="#2563eb"><title>Epoch 1: 86.37%</title></circle>
+  <circle cx="147.78" cy="174.80" r="4" fill="#2563eb"><title>Epoch 2: 92.96%</title></circle>
+  <circle cx="219.56" cy="153.49" r="4" fill="#2563eb"><title>Epoch 3: 94.51%</title></circle>
+  <circle cx="291.33" cy="139.74" r="4" fill="#2563eb"><title>Epoch 4: 95.51%</title></circle>
+  <circle cx="363.11" cy="129.42" r="4" fill="#2563eb"><title>Epoch 5: 96.26%</title></circle>
+  <circle cx="434.89" cy="122.96" r="4" fill="#2563eb"><title>Epoch 6: 96.73%</title></circle>
+  <circle cx="506.67" cy="116.50" r="4" fill="#2563eb"><title>Epoch 7: 97.2%</title></circle>
+  <circle cx="578.44" cy="111.96" r="4" fill="#2563eb"><title>Epoch 8: 97.53%</title></circle>
+  <circle cx="650.22" cy="108.11" r="4" fill="#2563eb"><title>Epoch 9: 97.81%</title></circle>
+  <circle cx="722.00" cy="104.54" r="4" fill="#2563eb"><title>Epoch 10: 98.07%</title></circle>
+  <polyline points="76.00,186.63 147.78,162.43 219.56,145.65 291.33,140.97 363.11,133.00 434.89,128.32 506.67,127.50 578.44,121.86 650.22,123.10 722.00,119.80" fill="none" stroke="#d97706" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="76.00" cy="186.63" r="4" fill="#d97706"><title>Epoch 1: 92.1%</title></circle>
+  <circle cx="147.78" cy="162.43" r="4" fill="#d97706"><title>Epoch 2: 93.86%</title></circle>
+  <circle cx="219.56" cy="145.65" r="4" fill="#d97706"><title>Epoch 3: 95.08%</title></circle>
+  <circle cx="291.33" cy="140.97" r="4" fill="#d97706"><title>Epoch 4: 95.42%</title></circle>
+  <circle cx="363.11" cy="133.00" r="4" fill="#d97706"><title>Epoch 5: 96%</title></circle>
+  <circle cx="434.89" cy="128.32" r="4" fill="#d97706"><title>Epoch 6: 96.34%</title></circle>
+  <circle cx="506.67" cy="127.50" r="4" fill="#d97706"><title>Epoch 7: 96.4%</title></circle>
+  <circle cx="578.44" cy="121.86" r="4" fill="#d97706"><title>Epoch 8: 96.81%</title></circle>
+  <circle cx="650.22" cy="123.10" r="4" fill="#d97706"><title>Epoch 9: 96.72%</title></circle>
+  <circle cx="722.00" cy="119.80" r="4" fill="#d97706"><title>Epoch 10: 96.96%</title></circle>
+  <g font-family="Arial,sans-serif" font-size="13" fill="#334155"><circle cx="480" cy="32" r="5" fill="#2563eb"/><text x="491" y="36">Train</text><circle cx="568" cy="32" r="5" fill="#d97706"/><text x="579" y="36">Validation</text></g>
+</svg>
