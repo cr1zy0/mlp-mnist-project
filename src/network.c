@@ -210,3 +210,14 @@ void updateNetwork(Network *net, const Gradients *grad, double learningRate,
     }
   }
 }
+int getPrediction(double *predictions) {
+  double mx = predictions[0];
+  int mxi = 0;
+  for (int i = 1; i < 10; i++) {
+    if (predictions[i] > mx) {
+      mx = predictions[i];
+      mxi = i;
+    }
+  }
+  return mxi;
+}
