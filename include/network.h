@@ -1,3 +1,6 @@
+#ifndef NETWORK_H
+#define NETWORK_H
+
 #include "matrix.h"
 
 typedef struct {
@@ -23,5 +26,10 @@ double calculateCrossEntropyLoss(double *predictions, int label);
 Gradients createGradients(const Network *network);
 void zeroGradients(Gradients *gradients);
 void freeGradients(Gradients *grad);
-void backwardPass(Gradients *grad, const ForwardCache *cache, const Network *net, int label);
-void updateNetwork(Network *net, const Gradients *grad, double learningRate, int batchSize);
+void backwardPass(Gradients *grad, const ForwardCache *cache,
+                  const Network *net, int label);
+void updateNetwork(Network *net, const Gradients *grad, double learningRate,
+                   int batchSize);
+int getPrediction(double *predictions);
+
+#endif

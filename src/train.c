@@ -33,6 +33,16 @@ void printAccuracy(int ep, double train_accuracy, double val_accuracy) {
   printf("Epoch %d | Train accuracy: %.2f%% | Validation accuracy: %.2f%%\n",
          ep + 1, train_accuracy * 100.0, val_accuracy * 100.0);
 }
+void networkEvaluate(Network *net, const Dataset *test, double *val_accuracy) {
+  ForwardCache cache = {0};
+  for (int i = 0; i < test->count; i++) {
+    forwardPass(net, test->pixels + i * 784, &cache);
+    if (getPrediction(cache.predictions) == test->labels[i]) {
+      (*val_accuracy)++;
+    }
+    freeForwardCache(&cache);
+  }
+}
 void networkFit(Network *net, const Dataset *train, const Dataset *validation,
                 double learningRate, int numEpochs, int batchSize) {
   int indices[train->count];
@@ -61,13 +71,7 @@ void networkFit(Network *net, const Dataset *train, const Dataset *validation,
       }
     }
     train_accuracy = train_accuracy / train->count;
-    for (int i = 0; i < validation->count; i++) {
-      forwardPass(net, validation->pixels + i * 784, &cache);
-      if (getPrediction(cache.predictions) == validation->labels[i]) {
-        val_accuracy++;
-      }
-      freeForwardCache(&cache);
-    }
+    networkEvaluate(net, validation, &val_accuracy);
     val_accuracy = val_accuracy / validation->count;
     printAccuracy(ep, train_accuracy, val_accuracy);
   }
