@@ -32,4 +32,7 @@ void updateNetwork(Network *net, const Gradients *grad, double learningRate,
                    int batchSize);
 int getPrediction(double *predictions);
 
+int saveWeights(const Network *network, const char *path);
+int loadWeights(Network *network, const char *path);
+
 #endif
