@@ -31,7 +31,7 @@ void backwardPass(Gradients *grad, const ForwardCache *cache,
 void updateNetwork(Network *net, const Gradients *grad, double learningRate,
                    int batchSize);
 int getPrediction(double *predictions);
-
+void networkInference(Network *net, char *image_path, char *label_path);
 int saveWeights(const Network *network, const char *path);
 int loadWeights(Network *network, const char *path);
 
