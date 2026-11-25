@@ -229,7 +229,7 @@ int saveWeights(const Network *network, const char *path) {
   if (file == NULL)
     return 0;
   size_t layerCount = sizeof(network->weights) / sizeof(network->weights[0]);
-  if (fprintf(file, "%d,%zu\n", 6767, layerCount) < 0) {
+  if (fprintf(file, "%d,%zu\n", MAGIC_NUMBER, layerCount) < 0) {
     fclose(file);
     return 0;
   }
@@ -238,103 +238,119 @@ int saveWeights(const Network *network, const char *path) {
     const Matrix *weights = &network->weights[i];
     fprintf(file, "%d,%d\n", weights->rows, weights->cols);
 
-    for (int j = 0; j < weights->rows * weights->cols - 1; j++)
+    for (int j = 0; j < weights->rows * weights->cols; j++)
       fprintf(file, "%.17g,", weights->data[j]);
-    fprintf(file, "%.17g\n", weights->data[weights->rows * weights->cols - 1]);
+    fprintf(file, "\n");
 
-    for (int j = 0; j < weights->rows - 1; j++)
+    for (int j = 0; j < weights->rows; j++)
       fprintf(file, "%.17g,", network->biases[i][j]);
-    fprintf(file, "%.17g\n", network->biases[i][weights->rows - 1]);
+    fprintf(file, "\n");
   }
   int writeFailed = ferror(file);
   int closeResult = fclose(file);
   return !writeFailed && closeResult == 0;
 }
 
+void freeStuff(double **all_weights, double **all_biases, FILE *file, size_t layerCount)
+{
+  for (size_t i = 0; i < layerCount; i++)
+  {
+    free(all_weights[i]);
+    free(all_biases[i]);
+  }
+  free(all_weights);
+  free(all_biases);
+  fclose(file);
+}
+
 int loadWeights(Network *network, const char *path) {
-  if (network == NULL || path == NULL)
-    return 0;
-
-  size_t layerCount = sizeof(network->weights) / sizeof(network->weights[0]);
-  size_t total = 0;
-  size_t capacity = SIZE_MAX / sizeof(double);
-
-  for (size_t i = 0; i < layerCount; i++) {
-    const Matrix *weights = &network->weights[i];
-    if (weights->rows <= 0 || weights->cols <= 0 || weights->data == NULL ||
-        network->biases[i] == NULL)
-      return 0;
-
-    size_t rows = (size_t)weights->rows;
-    size_t cols = (size_t)weights->cols;
-    if (cols + 1 > (capacity - total) / rows)
-      return 0;
-
-    total += rows * (cols + 1);
-  }
-
   FILE *file = fopen(path, "r");
-  if (file == NULL)
+  if (file == NULL) return 0;
+  size_t layerCount = sizeof(network->weights) / sizeof(network->weights[0]);
+
+  int magic;
+  size_t file_layerCount; // сверяем кол-во слоев модели
+  if (fscanf(file, "%d,%zu", &magic, &file_layerCount) != 2 || magic != MAGIC_NUMBER || file_layerCount != layerCount || fgetc(file) != '\n')
+  {
+    fclose(file);
     return 0;
-
-  double *values = malloc(total * sizeof(*values));
-  char line[128];
-  char expected[128];
-  int success = 0;
-
-  if (values == NULL)
-    goto cleanup;
-
-  snprintf(expected, sizeof expected, "6767,%zu\n", layerCount);
-  if (fgets(line, sizeof line, file) == NULL || strcmp(line, expected) != 0)
-    goto cleanup;
-
-  size_t offset = 0;
-  for (size_t i = 0; i < layerCount; i++) {
-    const Matrix *weights = &network->weights[i];
-    snprintf(expected, sizeof expected, "%d,%d\n", weights->rows,
-             weights->cols);
-    if (fgets(line, sizeof line, file) == NULL || strcmp(line, expected) != 0)
-      goto cleanup;
-
-    size_t biasCount = (size_t)weights->rows;
-    size_t weightCount = biasCount * (size_t)weights->cols;
-    size_t valueCount = weightCount + biasCount;
-
-    for (size_t j = 0; j < valueCount; j++) {
-      int separator =
-          (j + 1 == weightCount || j + 1 == valueCount) ? '\n' : ',';
-      if (fscanf(file, "%lf", &values[offset + j]) != 1 ||
-          fgetc(file) != separator)
-        goto cleanup;
-    }
-
-    offset += valueCount;
   }
 
-  if (fgetc(file) != EOF || ferror(file))
-    goto cleanup;
+  double **all_temp_weights = malloc(sizeof(double *) * layerCount); // кастуем 2 массива с указателями на временные массивы с весами и смещениями
+  double **all_temp_biases = malloc(sizeof(double *) * layerCount);
 
-  success = 1;
+  if (all_temp_biases == NULL || all_temp_weights == NULL)
+  {
+    fclose(file);
+    free(all_temp_biases);
+    free(all_temp_weights);
+    return 0;
+  }
+  for (size_t i = 0; i < layerCount; i++)
+  {
+    all_temp_biases[i] = NULL;
+    all_temp_weights[i] = NULL;
+  }
 
-cleanup:
-  if (fclose(file) != 0)
-    success = 0;
+  for (size_t i = 0; i < layerCount; i++) // цикл по слоям
+  {
+    int rows, cols; // читаем размеры слоя
+    if (fscanf(file, "%d, %d", &rows, &cols) != 2 || rows != network->weights[i].rows || cols != network->weights[i].cols || fgetc(file) != '\n')
+    {
+      freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+      return 0;
+    }
 
-  if (success) {
-    size_t offset = 0;
-    for (size_t i = 0; i < layerCount; i++) {
-      Matrix *weights = &network->weights[i];
-      size_t biasCount = (size_t)weights->rows;
-      size_t weightCount = biasCount * (size_t)weights->cols;
+    all_temp_weights[i] = malloc(sizeof(double) * rows * cols);
+    all_temp_biases[i] = malloc(sizeof(double) * rows);
 
-      memcpy(weights->data, values + offset, weightCount * sizeof(double));
-      offset += weightCount;
-      memcpy(network->biases[i], values + offset, biasCount * sizeof(double));
-      offset += biasCount;
+
+    if (all_temp_weights[i] == NULL || all_temp_biases[i] == NULL)
+    {
+      freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+      return 0;
+    }
+
+    for (int j = 0; j < rows * cols; j++) // читаем веса
+    {
+      if (fscanf(file, "%lf", &all_temp_weights[i][j]) != 1 || fgetc(file) != ',')
+      {
+        freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+        return 0;
+      }
+    }
+
+    if (fgetc(file) != '\n')
+    {
+      freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+      return 0;
+    }
+
+    for (int j = 0; j < rows; j++) // читаем смещения
+    {
+      if (fscanf(file, "%lf", &all_temp_biases[i][j]) != 1 || fgetc(file) != ',')
+      {
+        freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+        return 0;
+      }
+    }
+    if (fgetc(file) != '\n')
+    {
+      freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+      return 0;
     }
   }
 
-  free(values);
-  return success;
+  if (fgetc(file) != EOF || ferror(file) != 0)
+  {
+    freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+    return 0;
+  }
+  for (size_t i = 0; i < layerCount; i++)
+  {
+    memcpy(network->weights[i].data, all_temp_weights[i], sizeof(double) * network->weights[i].rows * network->weights[i].cols);
+    memcpy(network->biases[i], all_temp_biases[i], sizeof(double) * network->weights[i].rows);
+  }
+  freeStuff(all_temp_weights, all_temp_biases, file, layerCount);
+  return 1;
 }
