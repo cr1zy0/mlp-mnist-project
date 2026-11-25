@@ -1,6 +1,7 @@
 #include "..//include/train.h"
 #include "..//include/mnist.h"
 #include "..//include/network.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,4 +95,15 @@ void networkFit(Network *net, const Dataset *train, const Dataset *validation,
                         val_accuracy, elapsedTime);
   }
   freeGradients(&grad);
+}
+
+void networkInference(Network *net, char *image_path, char *label_path) {
+  Dataset *image = loadDataset(image_path, label_path);
+  assert(image != NULL);
+  ForwardCache cache = {0};
+  forwardPass(net, image->pixels, &cache);
+  printf("prediction: %d | Confidence: %lf", getPrediction(cache.predictions),
+         cache.predictions[getPrediction(cache.predictions)]);
+  freeForwardCache(&cache);
+  freeDataset(image);
 }
